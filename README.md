@@ -34,6 +34,14 @@
 >
 > If you are looking for related engineering and utility tools, start there.
 
+## Credits
+
+> [!NOTE]
+> This project is based on work from the Freelancer community.
+> Reworked and integrated into Lizerium ecosystem.
+>
+> Based on work by [`Jason Hood (adoxa)`](https://adoxa.altervista.org/freelancer/index.html)
+
 ---
 
 ## 🐉 Important
