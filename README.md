@@ -37,22 +37,22 @@
 ## Credits
 
 > [!NOTE]
-> This project is based on work from the Freelancer community.
-> Reworked and integrated into Lizerium ecosystem.
+> This project is based on work from the Freelancer community.  
+> Reworked and integrated into the Lizerium ecosystem.
 >
 > Based on work by [`Jason Hood (adoxa)`](https://adoxa.altervista.org/freelancer/index.html)
 
 ---
 
-## 🐉 Important
+## Important
 
 > [!IMPORTANT]
-> I am **fully aware** that the original tool was created ~15 years ago (around 2010).
+> I am **fully aware** that the original tool was created ~15 years ago (around 2010).  
 > The author is **Jason Hood (Adoxa)**, and the initial implementation was made by **Sir Lancelot**.
 
 ---
 
-## 🐬 My Version
+## My Version
 
 > [!TIP]
 > This is a **custom reworked version**, created for my own needs.
@@ -63,10 +63,10 @@
 
 ---
 
-## 🐆 Project Purpose
+## Project Purpose
 
 > [!NOTE]
-> This tool was created for the project
+> This tool was created for the project:
 > [`Lizerium.DataValidation.Framework`](https://github.com/Lizerium/Lizerium.DataValidation.Framework)
 
 Goals:
@@ -77,54 +77,52 @@ Goals:
 
 ---
 
-## 🌱 Description
+## Description
 
 `UTFXML.exe` is a tool for:
 
-- unpacking `.cmp, .3db, .mat, .txm`
+- unpacking `.cmp`, `.3db`, `.mat`, `.txm`
 - converting them into `XML`
 - extracting embedded resources (`.wav`, `.tga`, `.dds`, etc.)
 
 ---
 
-## ⚙️ Features
+## Features
 
-| Feature            | Description                                                            |
-| ------------------ | ---------------------------------------------------------------------- |
-| 📦 Extraction      | Extracts `UTF` file structure into `XML`, including embedded resources |
-| ✏️ Editing         | Full control via any text editor                                       |
-| 🔄 Rebuild         | Build XML back into `.cmp`, `.mat`, `.txm`                             |
-| 🔑 Named Hashes    | Supports `hash="gcs_refer_fc_new_short"` → auto ID resolution          |
-| 🔬 Transformations | RGB → HEX, quaternions → axis-angle, radians → degrees                 |
-| ⚡ Batch Mode      | Process multiple files from a directory                                |
+| Feature         | Description                                                            |
+| --------------- | ---------------------------------------------------------------------- |
+| Extraction      | Extracts `UTF` file structure into `XML`, including embedded resources |
+| Editing         | Full control via any text editor                                       |
+| Rebuild         | Build XML back into `.cmp`, `.mat`, `.txm`                             |
+| Named Hashes    | Supports `hash="gcs_refer_fc_new_short"` → auto ID resolution          |
+| Transformations | RGB → HEX, quaternions → axis-angle, radians → degrees                 |
+| Batch Mode      | Process multiple files from a directory                                |
 
 ---
 
-## 🧠 Notes
+## Notes
 
 > [!TIP]
-> Can be used as a **model structure analyzer**, not just a converter
+> Can be used as a **model structure analyzer**, not just a converter.
 
 > [!WARNING]
-> Some formats are **not fully tested yet**
+> Some formats are **not fully tested yet**.
 
 ---
 
-## 🛠 Build
+## Build
 
 > [!IMPORTANT]
-> Uses an old toolchain for maximum compatibility
+> Uses an old toolchain for maximum compatibility.
 
 - **IDE:** Visual Studio `2008`
 - Configuration: `Release`
-- Steps:
-  - open the project
-  - build
-  - done
 
----
+Steps:
 
-<p align="center">🐟 Built for deep reverse engineering and full data control 🐟</p>
+1. Open the project
+2. Build
+3. Done
 
 ---
 
