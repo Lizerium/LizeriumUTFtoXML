@@ -42,6 +42,7 @@
 >
 > by Sir Lancelot (a.k.a. Sirlancelot, Elvviis, Yud, vEct0r)
 > Based on work by [`Jason Hood (adoxa)`](https://adoxa.altervista.org/freelancer/index.html)
+> Full list [authors](CREDITS.md)
 
 ---
 
