@@ -117,7 +117,10 @@ DWORD fl_crc32(LPCSTR string)
 
 	for (; *string; ++string)
 	{
-		crc = (crc >> 8) ^ flcrc32tbl[ (BYTE)crc ^ (BYTE)tolower(*string) ];
+		unsigned char c = static_cast<unsigned char>(*string);
+
+		crc = (crc >> 8) ^
+			flcrc32tbl[(BYTE)crc ^ (BYTE)tolower(c)];
 	}
 
 	return ~crc;

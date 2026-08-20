@@ -192,9 +192,16 @@ union Ptrs
 	ALEffectLib *ael;
 };
 
+struct LPCSTRLess
+{
+    bool operator()(LPCSTR s1, LPCSTR s2) const
+    {
+        return (_stricmp(s1, s2) < 0);
+    }
+};
 
 // Create a set of Rev parts.
-typedef std::set<LPCSTR> SetName;
+typedef std::set<LPCSTR, LPCSTRLess> SetName;
 
 // Map CRCs to their names.
 typedef std::map<DWORD, LPCSTR> MapCRCName;
@@ -244,6 +251,7 @@ public:
 	CString	m_DestinationPath;
 	CString	m_UtfFilenames;
 	CString m_StringsList;
+	CString m_FreelancerPath;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
@@ -270,6 +278,9 @@ protected:
 	afx_msg void OnHelpButton();
 	afx_msg void OnSelchangeUtfFilenames();
 	afx_msg void OnOptionRgb();
+	afx_msg void OnBrowseSourcePath();
+	afx_msg void OnBrowseDestinationPath();
+	afx_msg void OnBrowseFreelancerPath();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
@@ -278,23 +289,23 @@ public:
 
 private:
 	void   CreateAndSetPath(LPCSTR path);
-    void   Log(LPCSTR format, ...);
-    bool   ProcessFolder(LPCSTR folder);
-    bool   IsFileTypeSelected(LPCSTR filename);
-    void   ProcessUTFFile(LPCSTR filename);
+  void   Log(LPCSTR format, ...);
+  bool   ProcessFolder(LPCSTR folder);
+  bool   IsFileTypeSelected(LPCSTR filename);
+  void   ProcessUTFFile(LPCSTR filename);
 	void   ProcessUTFNode(UTFNode *node);
 	void   ProcessLeaf(LPCSTR name, BYTE *leaf, DWORD size);
 	char * OpenIncludeFile(LPCSTR filename, LPCSTR xml_name);
 	void   CloseIncludeFile(LPCSTR xml_name);
 	char * SaveDataFile(LPCSTR filename, BYTE *data, DWORD size, int save_data);
-    void   OpenXmlFile(LPCSTR filename);
-    void   CloseXmlFile();
+  void   OpenXmlFile(LPCSTR filename);
+  void   CloseXmlFile();
 	void   Indent(int depth = 0);
 	void   OpenNode(LPCSTR type, LPCSTR attr = NULL, ...);
 	void   CloseNode();
 	void   WriteTime(int index, const FILETIME &ft);
 	void   WriteTime(int index, DWORD dt);
-    void   WriteUnk(int index, DWORD value);
+  void   WriteUnk(int index, DWORD value);
 	void   WriteNodeUnk(UTFNode *node);
 	void   WriteALEffectLib(BYTE *leaf);
 	void   WriteAlchemyNodeLibrary(BYTE *leaf);
@@ -342,37 +353,37 @@ private:
     BOOL   m_ExtractAudioFiles;
     BOOL   m_ExtractTextureFiles;
     BOOL   m_ExtractIncludeFiles;
-	BOOL   m_OptionTimestamps;
-	BOOL   m_OptionDegrees;
-	BOOL   m_OptionRotation;
-	UINT   m_OptionRGB;
+		BOOL   m_OptionTimestamps;
+		BOOL   m_OptionDegrees;
+		BOOL   m_OptionRotation;
+		UINT   m_OptionRGB;
     char   m_CurrentDestinationPath[MAX_PATH];
-	char   m_ExtractPath[MAX_PATH];
+		char   m_ExtractPath[MAX_PATH];
     BYTE * m_Tree;
-	char * m_String;
+		char * m_String;
     BYTE * m_Data;
     int    m_Depth;
     char * m_vms_file;
     char * m_tga_file;
     char * m_bmp_file;
     const char* m_3db_file;
-	bool   m_is_anm;
-	bool   m_is_dfm;
-	DWORD  m_time1, m_time2, m_time3;
-	Header * m_AnimHeader;
+		bool   m_is_anm;
+		bool   m_is_dfm;
+		DWORD  m_time1, m_time2, m_time3;
+		Header * m_AnimHeader;
     FILE * m_LogFile;
     FILE * m_XmlFile;
     bool   m_TextureLibrary;
-	bool   m_VMeshLibrary;
-	bool   m_Animation;
+		bool   m_VMeshLibrary;
+		bool   m_Animation;
     bool   m_GeneratedOutput;
-	bool   m_Quiet;
-	UTFHeader m_Header;
-	UTFNode *m_Node;
-	char * m_xml_tag;
-	char * m_xml_name;
-	SetName m_rev_parts;
-	bool   m_is_rev;
+		bool   m_Quiet;
+		UTFHeader m_Header;
+		UTFNode *m_Node;
+		char * m_xml_tag;
+		char * m_xml_name;
+		SetName m_rev_parts;
+		bool   m_is_rev;
 };
 
 //{{AFX_INSERT_LOCATION}}

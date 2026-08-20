@@ -1,0 +1,15 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Debug UTFXML",
+			"type": "cppvsdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}\\UTFXML\\Debug\\UTFXML.exe",
+			"cwd": "${workspaceFolder}\\UTFXML\\Debug",
+			"stopAtEntry": false,
+			"console": "internalConsole",
+			"preLaunchTask": "Build UTFXML Debug"
+		}
+	]
+}

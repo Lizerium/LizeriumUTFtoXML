@@ -40,26 +40,23 @@
 > Этот проект основан на работе сообщества Freelancer.  
 > Переработан и интегрирован в экосистему Lizerium.
 >
+> от Sir Lancelot (a.k.a. Sirlancelot, Elvviis, Yud, vEct0r)
 > Основано на работе [`Jason Hood (adoxa)`](https://adoxa.altervista.org/freelancer/index.html)
-
----
-
-## Важно
-
-> [!IMPORTANT]
-> Я **полностью осознаю**, что оригинальный инструмент был создан около 15 лет назад (примерно в 2010 году).  
-> Автор — **Jason Hood (Adoxa)**, а первоначальная реализация была сделана **Sir Lancelot**.
 
 ---
 
 ## Моя версия
 
 > [!TIP]
-> Это **кастомная переработанная версия**, созданная под мои собственные задачи.
+> Это **кастомная переработанная версия**, созданная под мои собственные задачи. Однако список изменений вы можете найти в [CHANGELOG](CHANGELOG.ru.md)
 
-- Добавлена поддержка экспорта блока `Animation` → `XML`
-- Проверено на `.cmp` файлах
-- Остальные форматы **потенциально поддерживаются**, но протестированы не полностью
+---
+
+## Запуск отладочной версии
+
+- Visual Code (Кликни на Play)
+
+![debug](MEDIA/debug.png)
 
 ---
 
@@ -112,6 +109,15 @@
 
 ## Сборка
 
+### Visual Studio 2022 && Visual Code
+
+> Важно наличие в системе `Visual Studio 2022` и его компоненты `Developer Command Prompt for VS 2022`
+
+1. Открыть `Visual Code` -> `Terminal`
+2. [`Сборка`](build.bat)
+
+### Visual Studio 2008
+
 > [!IMPORTANT]
 > Используется старый toolchain для максимальной совместимости.
 
@@ -131,3 +137,4 @@
 Этот слой связан с:
 
 - [`Lizerium.DataValidation.Framework`](https://github.com/Lizerium/Lizerium.DataValidation.Framework)
+- [`LizeriumXMLtoUTF`](https://github.com/Lizerium/LizeriumXMLtoUTF)

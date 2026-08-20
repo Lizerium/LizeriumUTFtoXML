@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// Английский (США) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -27,18 +25,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
     "#define _AFX_NO_OLE_RESOURCES\r\n"
@@ -65,113 +63,96 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON    DISCARDABLE     "UTFXML.ico"
+IDR_MAINFRAME           ICON                    "UTFXML.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 210, 91
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_ABOUTBOX DIALOGEX 0, 0, 210, 103
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About UTFXML"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "UTFXML Version 2.2",IDC_PROGRAM_NAME,7,7,119,13,
-                    SS_NOPREFIX
-    LTEXT           "Utility and Source Code placed in Public Domain 03-Nov-2004",
-                    IDC_STATIC,7,40,196,8
+    LTEXT           "UTFXML Version 3.0",IDC_PROGRAM_NAME,7,7,119,13,SS_NOPREFIX
+    LTEXT           "Utility and Source Code placed in Public Domain 03-Nov-2004",IDC_STATIC,7,40,196,8
     DEFPUSHBUTTON   "OK",IDOK,153,7,50,14,WS_GROUP
-    LTEXT           "by Sir Lancelot (a.k.a. Sirlancelot, Elvviis, Yud, vEct0r)",
-                    IDC_STATIC,7,60,172,8
-    LTEXT           "Freelancer UTF to XML Conversion Utility",IDC_STATIC,7,
-                    21,131,8
-    LTEXT           "on Lancers Reactor and http://freelancer.adoxa.cjb.net/",
-                    IDC_STATIC,7,50,180,8
-    LTEXT           "and Jason Hood (a.k.a. adoxa).",IDC_STATIC,7,70,100,8
+    LTEXT           "by Sir Lancelot (a.k.a. Sirlancelot, Elvviis, Yud, vEct0r)",IDC_STATIC,7,60,172,8
+    LTEXT           "Freelancer UTF to XML Conversion Utility",IDC_STATIC,7,21,131,8
+    LTEXT           "on Lancers Reactor and http://freelancer.adoxa.cjb.net/",IDC_STATIC,7,50,180,8
+    LTEXT           "and Jason Hood (a.k.a. adoxa). and Dvurechensky (https://dvurechensky.pro)",IDC_STATIC,7,72,100,8
+    LTEXT           "and Dvurechensky (https://dvurechensky.pro).",IDC_STATIC,7,83,100,8
 END
 
-IDD_UTFXML_DIALOG DIALOGEX 0, 0, 280, 235
-STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
-    WS_SYSMENU
+IDD_UTFXML_DIALOG DIALOGEX 0, 0, 350, 265
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "Freelancer UTF to XML Converter"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Source Path",IDC_STATIC,7,8,40,8
-    CONTROL         "Recursive",IDC_RECURSIVE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,69,7,48,10
-    EDITTEXT        IDC_SOURCE_PATH,7,18,266,12,ES_AUTOHSCROLL
+    CONTROL         "Recursive",IDC_RECURSIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,69,7,48,10
+    EDITTEXT        IDC_SOURCE_PATH,7,18,310,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_SOURCE_PATH,325,17,11,14
     LTEXT           "Destination Path",IDC_STATIC,7,38,53,8
-    CONTROL         "Generate XML File(s)",IDC_GENERATE_XML_FILES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,69,37,82,10
-    CONTROL         "Create Subfolders",IDC_CREATE_SUBFOLDERS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,157,37,72,10
-    EDITTEXT        IDC_DESTINATION_PATH,7,48,266,12,ES_AUTOHSCROLL
-    LTEXT           "UTF Filename(s)",IDC_STATIC,7,68,52,8
-    COMBOBOX        IDC_UTF_FILENAMES,7,78,249,112,CBS_DROPDOWN | 
-                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "...",IDC_BROWSE_UTF_FILENAME,262,77,11,14
-    LTEXT           "Strings List",IDC_STATIC,7,98,76,8
-    EDITTEXT        IDC_STRINGS_LIST,7,108,210,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Generate",IDC_GENERATE_BUTTON,223,107,50,14
-    GROUPBOX        "Skip Folders",IDC_STATIC,7,130,68,71
-    CONTROL         "Audio",IDC_SKIP_AUDIO,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,16,144,34,10
-    CONTROL         "Bases",IDC_SKIP_BASES,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,16,157,35,10
-    CONTROL         "Characters",IDC_SKIP_CHARACTERS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,16,170,50,10
-    CONTROL         "FX",IDC_SKIP_FX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    16,183,25,10
-    GROUPBOX        "Extract",IDC_STATIC,85,130,107,71
-    CONTROL         "Audio Files (.wav)",IDC_EXTRACT_AUDIO_FILES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,94,144,71,10
+    CONTROL         "Generate XML File(s)",IDC_GENERATE_XML_FILES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,69,37,82,10
+    CONTROL         "Create Subfolders",IDC_CREATE_SUBFOLDERS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,157,37,72,10
+    EDITTEXT        IDC_DESTINATION_PATH,7,48,309,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_DESTINATION_PATH,325,47,11,14
+    LTEXT           "Freelancer Path",IDC_STATIC,7,68,53,8
+    EDITTEXT        IDC_FREELANCER_PATH,7,78,308,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE_FREELANCER_PATH,325,77,11,14
+    LTEXT           "UTF Filename(s)",IDC_STATIC,7,98,52,8
+    COMBOBOX        IDC_UTF_FILENAMES,7,108,308,112,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "...",IDC_BROWSE_UTF_FILENAME,325,107,11,14
+    LTEXT           "Strings List",IDC_STATIC,7,128,76,8
+    EDITTEXT        IDC_STRINGS_LIST,7,138,210,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Generate",IDC_GENERATE_BUTTON,291,137,50,14
+    GROUPBOX        "Skip Folders",IDC_STATIC,7,160,68,71
+    CONTROL         "Audio",IDC_SKIP_AUDIO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,174,34,10
+    CONTROL         "Bases",IDC_SKIP_BASES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,187,35,10
+    CONTROL         "Characters",IDC_SKIP_CHARACTERS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,200,50,10
+    CONTROL         "FX",IDC_SKIP_FX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,213,25,10
+    GROUPBOX        "Extract",IDC_STATIC,85,160,107,71
+    CONTROL         "Audio Files (.wav)",IDC_EXTRACT_AUDIO_FILES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,94,174,71,10
     CONTROL         "Texture Files (.dds .tga)",IDC_EXTRACT_TEXTURE_FILES,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,94,157,89,10
-    CONTROL         "Include Files",IDC_EXTRACT_INCLUDE_FILES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,94,170,55,10
-    GROUPBOX        "Options",IDC_STATIC,202,130,71,71
-    CONTROL         "Timestamps",IDC_OPTION_TIMESTAMPS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,211,144,53,10
-    CONTROL         "Degrees",IDC_OPTION_DEGREES,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,211,157,43,10
-    CONTROL         "Rotation",IDC_OPTION_ROTATION,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,211,170,43,10
-    CONTROL         "RGB (decimal)",IDC_OPTION_RGB,"Button",BS_AUTO3STATE | 
-                    WS_TABSTOP,211,183,61,10
-    PUSHBUTTON      "Help",IDC_HELP_BUTTON,103,210,50,18,NOT WS_VISIBLE
-    DEFPUSHBUTTON   "Convert",IDC_CONVERT,163,210,50,18
-    PUSHBUTTON      "Exit",IDCANCEL,223,210,50,18
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,94,187,89,10
+    CONTROL         "Include Files",IDC_EXTRACT_INCLUDE_FILES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,94,200,55,10
+    GROUPBOX        "Options",IDC_STATIC,270,160,71,71
+    CONTROL         "Timestamps",IDC_OPTION_TIMESTAMPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,279,170,53,10
+    CONTROL         "Degrees",IDC_OPTION_DEGREES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,279,183,43,10
+    CONTROL         "Rotation",IDC_OPTION_ROTATION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,279,196,43,10
+    CONTROL         "RGB (decimal)",IDC_OPTION_RGB,"Button",BS_AUTO3STATE | WS_TABSTOP,279,209,61,10
+    PUSHBUTTON      "Help",IDC_HELP_BUTTON,103,240,50,18,NOT WS_VISIBLE
+    DEFPUSHBUTTON   "Convert",IDC_CONVERT,163,240,50,18
+    PUSHBUTTON      "Exit",IDCANCEL,291,240,50,18
 END
 
-IDD_PROGRESS_DIALOG DIALOG DISCARDABLE  0, 0, 251, 92
-STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_PROGRESS_DIALOG DIALOG 0, 0, 251, 92
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "UTF to XML Conversion Progress"
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Path:",IDC_STATIC,7,7,18,8
-    EDITTEXT        IDC_PATH,7,17,237,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
-                    WS_TABSTOP
+    EDITTEXT        IDC_PATH,7,17,237,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
     LTEXT           "Progress:",IDC_STATIC,7,34,30,8
-    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
-                    44,237,14
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,44,237,14
     LTEXT           "Status:",IDC_STATIC,7,63,23,8
-    EDITTEXT        IDC_STATUS,7,73,177,12,ES_AUTOHSCROLL | ES_READONLY | 
-                    NOT WS_TABSTOP
+    EDITTEXT        IDC_STATUS,7,73,177,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_TABSTOP
     PUSHBUTTON      "Abort",IDCANCEL,194,71,50,14
 END
 
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,2,0,0
- PRODUCTVERSION 2,2,0,0
+ FILEVERSION 3,0,0,0
+ PRODUCTVERSION 3,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -186,18 +167,15 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "by Sir Lancelot (a.k.a. Sirlancelot, Elvviis, Yud, vEct0r) & Jason Hood (a.k.a adoxa)\0"
-            VALUE "CompanyName", "http://freelancer.adoxa.cjb.net/\0"
-            VALUE "FileDescription", "Freelancer UTF to XML Conversion Utility\0"
-            VALUE "FileVersion", "v2.2\0"
-            VALUE "InternalName", "UTFXML\0"
-            VALUE "LegalCopyright", "Utility and Source Code placed in Public Domain on 03-Nov-2004\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "UTFXML.EXE\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "Freelancer UTF to XML Conversion Utility\0"
-            VALUE "ProductVersion", "v2.2\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "Comments", "by Sir Lancelot (a.k.a. Sirlancelot, Elvviis, Yud, vEct0r) & Jason Hood (a.k.a adoxa) & Dvurechensky"
+            VALUE "CompanyName", "https://dvurechensky.pro/"
+            VALUE "FileDescription", "Freelancer UTF to XML Conversion Utility"
+            VALUE "FileVersion", "v3.0"
+            VALUE "InternalName", "UTFXML"
+            VALUE "LegalCopyright", "Utility and Source Code placed in Public Domain on 03-Nov-2004"
+            VALUE "OriginalFilename", "UTFXML.EXE"
+            VALUE "ProductName", "Freelancer UTF to XML Conversion Utility"
+            VALUE "ProductVersion", "v3.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -206,8 +184,6 @@ BEGIN
     END
 END
 
-#endif    // !_MAC
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -215,20 +191,20 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 203
         TOPMARGIN, 7
-        BOTTOMMARGIN, 84
+        BOTTOMMARGIN, 96
     END
 
     IDD_UTFXML_DIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 273
+        RIGHTMARGIN, 341
         TOPMARGIN, 7
         BOTTOMMARGIN, 228
     END
@@ -246,22 +222,39 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// 24
+// RT_MANIFEST
 //
 
-1                       24      DISCARDABLE     "manifest.xml"
+1                       RT_MANIFEST             "manifest.xml"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_UTFXML_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ABOUTBOX AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
 //
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDS_ABOUTBOX            "&About UTFXML..."
 END
 
-#endif    // English (U.S.) resources
+#endif    // Английский (США) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

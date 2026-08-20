@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
  * UTFXMLDlg.cpp
  *
  *
@@ -12,7 +12,10 @@
  *		email: jadoxa@yahoo.com.au
  *		http://freelancer.adoxa.cjb.net/
  *
- *
+ * 		Updated by Dvurechensky
+ *		email: nikolay@dvurechensky.pro
+ *		https://dvurechensky.pro/
+ * 
  * ----------------------------------------------------------------------------
  * PURPOSE:
  *
@@ -50,109 +53,7 @@
  *		Warn if type="text" data contains illegal characters '>' or '<'
  *		Write Milkshape 3D Import/Export plug-in for FL XML format.
  *
- *
- * ----------------------------------------------------------------------------
- * CREDITS:
- *
- *		For researching/publishing of UTF and VMeshRef structs, fl_crc32
- *		  Mario "HCl" Brito (mbrito@student.dei.uc.pt)
- *		  Matthew "dizzy" Ruggiero
- *		For FLModelTool, FLAddRadius, CMP Exporter, SUR file structs
- *		  Colin Sandby, Harrier, Anton (hitchhiker54@yahoo.com), Twex,
- *		  Phantom Fox, Free Spirit, Dr Del, CCCP, shsan, Skyshooter, Brutus
- *		For improvement suggestions and bug reports:
- *		  Eirik "esflightsim" Sletteberg (bug report)
- *
- *		Sorry I don't exactly know who did what, but they all did something
- *		which paved the way for this utility.  If I left anyone out, please
- *		email me at the above email address and I will update the list.
- *
- *
- * ----------------------------------------------------------------------------
- * REVISION HISTORY:
- *
- *		01-Nov-2004  V1.0a Sir Lancelot
- *							Original design and implementation
- *
- *		04-Nov-2004  V1.0b Sir Lancelot
- *							Numerous changes to support the XML to UTF utility.
- *							Added UTFXML version number comment to XML file.
- *							Wait up to 5 seconds for the conversion to abort.
- *							Assume game is located in default install location
- *							   if AppPath is not found in the registry.
- *							Added "unk" attributes for unknown node data.
- *
- *		06-Nov-2004  V1.1  Sir Lancelot
- *							Fixed bug reported by Eirik Sletteberg.
- *							   Remove commas following unk attributes.
- *							Fixed bug causing heads and hands to disappear.
- *							   Remove code that replaces negative floating point
- *							   numbers in "Orientation" with zero.
- *							Added <UTF_ROOT>...</UTF_ROOT> to retain unk values.
- *							Added a number of attributes to UTFXML tag to make
- *							   the output file created by XMLUTF match the
- *							   characteristics of the original UTF file and
- *							   for verifying that the result was the same size.
- *							   These attributes include:
- *								   * dupstrings
- *								   * prepaddata
- *								   * string_padding
- *								   * nodes
- *								   * ssize
- *								   * salloc
- *								   * doffset
- *								   * original_size
- *								   * padding="4"
- *							   After testing thoroughly, it appears that the
- *							   resulting UTF file works fine with Freelancer
- *							   without these attributes, so they are commented
- *							   out.
- *							When all three unks are the same, create only one
- *							   attrib (unk234) to represent all three.
- *							Only add "unk" values if non-zero.
- *
- *		16-Jan-2010  V2.0  Jason Hood
- *							Don't exit automatically.
- *							Fixed retrieving destination path from the registry.
- *							Create the destination path (final directory only).
- *							Ignore case more often.
- *							Added ability to select a specific UTF extension.
- *							Unk4 & 5 in the header form a single FILETIME.
- *							Unk234 are DOS-style file date & time; only include
- *							   them if they differ from their parent and the
- *							   timestamp option is in effect.
- *							Convert almost all node types.
- *							Files are extracted to a subdirectory, removing the
- *							   need to suffix the name with CRC.
- *							Removed VMeshData & VWireData extraction options,
- *							   combining them into an "Include Files" option.
- *							Scan the audio ini files for msg nicknames, using
- *							   those instead of the hash; scan particular UTF
- *							   files for material names, using those instead of
- *							   the CRC.
- *							Display improvements.
- *
- *		16-Mar-2010  V2.1  Jason Hood
- *							Removed compatibility code.
- *							Relaxed int and float detection (allow size of 8).
- *							Added a log (UTFXML.log in the destination).
- *							Removed timestamp from file names.
- *							Checking RGB does integer; checking again does hex.
- *
- *		09-Aug-2010  V2.2  Jason Hood
- *							Continue if Freelancer not apparently installed.
- *							Use a name for Alchemy type values.
- *							Renamed the VMeshRef comments.
- *							Do not use degrees for Frames values of Pris parts.
- *							Convert quaternion to angle/axis if using Rotation.
- *							Command line options.
- *							Add the summary to the log.
- *							Create the entire destination path.
- *							Write the log to the temporary directory.
- *							Remove "DATA\" from the path attribute.
- *
- ******************************************************************************/
-
+******************************************************************************/
 
 //////////////////////////////////////////////////////////////////////
 // Include Files
@@ -516,19 +417,62 @@ void cleanup()
 // Change to Freelancer's EXE directory and read the imports from Common.dll.
 void import(LPCSTR fl)
 {
-	char fl_exe[MAX_PATH];
+    char fl_exe[MAX_PATH] = {};
 
-	// Need to do this in the EXE directory to find other DLLs.
-	sprintf(fl_exe, "%s\\EXE", fl);
-	SetCurrentDirectory(fl_exe);
-	common = LoadLibrary("common.dll");
-	if (common)
-	{
-		atexit(cleanup);
+    sprintf_s(
+        fl_exe,
+        sizeof(fl_exe),
+        "%s\\EXE",
+        fl
+    );
 
-		for (int i = 0; i < IMPORTS; ++i)
-			imports[i].addr = GetProcAddress(common, imports[i].name);
-	}
+    if (!SetCurrentDirectory(fl_exe))
+    {
+        MessageBox(
+            NULL,
+            fl_exe,
+            "Freelancer EXE directory not found",
+            MB_OK | MB_ICONERROR
+        );
+        return;
+    }
+
+    common = LoadLibrary("common.dll");
+
+    if (!common)
+    {
+        MessageBox(
+            NULL,
+            "Unable to load common.dll",
+            "UTFXML",
+            MB_OK | MB_ICONERROR
+        );
+        return;
+    }
+
+    atexit(cleanup);
+
+    for (int i = 0; i < IMPORTS; ++i)
+    {
+        imports[i].addr =
+            GetProcAddress(common, imports[i].name);
+
+        if (!imports[i].addr)
+        {
+            CString msg;
+            msg.Format(
+                "Function not found in common.dll:\n%s",
+                imports[i].name
+            );
+
+            MessageBox(
+                NULL,
+                msg,
+                "UTFXML import error",
+                MB_OK | MB_ICONERROR
+            );
+        }
+    }
 }
 
 
@@ -600,20 +544,50 @@ void UTFXMLCommandLineInfo::ParseParam(LPCSTR param, BOOL bFlag, BOOL bLast)
 }
 
 
-//////////////////////////////////////////////////////////////////////
 // BackgroundConversionTask entry point
-//////////////////////////////////////////////////////////////////////
-
 static UINT AFX_CDECL BackgroundConversionThread(void *args)
 {
 	return ((UTFXMLDlg *) args)->RunBackgroundConversionThread();
 }
 
+static void SanitizeInlineString(char* s)
+{
+    if (!s)
+        return;
 
-//////////////////////////////////////////////////////////////////////
+    char* src = s;
+
+    while (*src == ' ' || *src == '\t' ||
+           *src == '\r' || *src == '\n')
+    {
+        ++src;
+    }
+
+    char* dst = s;
+    bool pendingSpace = false;
+
+    while (*src)
+    {
+        if (*src == ' ' || *src == '\t' ||
+            *src == '\r' || *src == '\n')
+        {
+            pendingSpace = true;
+            ++src;
+            continue;
+        }
+
+        if (pendingSpace && dst != s)
+            *dst++ = ' ';
+
+        pendingSpace = false;
+        *dst++ = *src++;
+    }
+
+    *dst = '\0';
+}
+
+
 // CAboutDlg class definition
-//////////////////////////////////////////////////////////////////////
-
 class CAboutDlg : public CDialog
 {
 public:
@@ -691,6 +665,7 @@ UTFXMLDlg::UTFXMLDlg(CWnd* pParent /* = NULL */)
 	m_SourcePath = _T("");
 	m_UtfFilenames = _T("");
 	m_DestinationPath = _T("");
+	m_FreelancerPath = _T("");
 	m_StringsList = _T("");
 	//}}AFX_DATA_INIT
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -710,6 +685,7 @@ void UTFXMLDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_CBString(pDX, IDC_UTF_FILENAMES, m_UtfFilenames);
 	DDX_Text(pDX, IDC_DESTINATION_PATH, m_DestinationPath);
 	DDX_Text(pDX, IDC_STRINGS_LIST, m_StringsList);
+	DDX_Text(pDX, IDC_FREELANCER_PATH, m_FreelancerPath);
 	//}}AFX_DATA_MAP
 }
 
@@ -721,13 +697,204 @@ BEGIN_MESSAGE_MAP(UTFXMLDlg, CDialog)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_CONVERT, OnConvert)
 	ON_BN_CLICKED(IDC_BROWSE_UTF_FILENAME, OnBrowseUtfFilename)
+	ON_BN_CLICKED(IDC_BROWSE_SOURCE_PATH, OnBrowseSourcePath)
+	ON_BN_CLICKED(IDC_BROWSE_DESTINATION_PATH, OnBrowseDestinationPath)
 	ON_BN_CLICKED(IDC_GENERATE_BUTTON, OnGenerate)
 	ON_BN_CLICKED(IDC_HELP_BUTTON, OnHelpButton)
 	ON_CBN_SELCHANGE(IDC_UTF_FILENAMES, OnSelchangeUtfFilenames)
 	ON_BN_CLICKED(IDC_OPTION_RGB, OnOptionRgb)
+	ON_BN_CLICKED(IDC_BROWSE_FREELANCER_PATH, OnBrowseFreelancerPath)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
+bool SelectFolderModern(HWND owner, CString& outPath)
+{
+	HRESULT initHr = CoInitializeEx(
+		NULL,
+		COINIT_APARTMENTTHREADED
+	);
+
+	bool shouldUninitialize = SUCCEEDED(initHr);
+
+	// S_FALSE means COM was already initialized on this thread.
+	if (initHr == S_FALSE)
+		shouldUninitialize = true;
+
+	if (FAILED(initHr) && initHr != RPC_E_CHANGED_MODE)
+	{
+		CString msg;
+		msg.Format(
+			"CoInitializeEx failed.\nHRESULT: 0x%08X",
+			initHr
+		);
+
+		MessageBox(owner, msg, "COM Error", MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	IFileDialog* pFileDialog = NULL;
+
+	HRESULT hr = CoCreateInstance(
+		CLSID_FileOpenDialog,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_PPV_ARGS(&pFileDialog)
+	);
+
+	if (FAILED(hr))
+	{
+		CString msg;
+		msg.Format(
+			"Unable to create modern folder dialog.\nHRESULT: 0x%08X",
+			hr
+		);
+
+		MessageBox(owner, msg, "Folder Dialog Error", MB_OK | MB_ICONERROR);
+
+		if (shouldUninitialize)
+			CoUninitialize();
+
+		return false;
+	}
+
+	DWORD options = 0;
+
+	hr = pFileDialog->GetOptions(&options);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = pFileDialog->SetOptions(
+			options |
+			FOS_PICKFOLDERS |
+			FOS_FORCEFILESYSTEM |
+			FOS_PATHMUSTEXIST
+		);
+	}
+
+	if (FAILED(hr))
+	{
+		pFileDialog->Release();
+
+		if (shouldUninitialize)
+			CoUninitialize();
+
+		return false;
+	}
+
+	pFileDialog->SetTitle(L"Select Freelancer folder");
+
+	hr = pFileDialog->Show(owner);
+
+	// User pressed Cancel.
+	if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
+	{
+		pFileDialog->Release();
+
+		if (shouldUninitialize)
+			CoUninitialize();
+
+		return false;
+	}
+
+	if (FAILED(hr))
+	{
+		CString msg;
+		msg.Format(
+			"Folder dialog failed.\nHRESULT: 0x%08X",
+			hr
+		);
+
+		MessageBox(owner, msg, "Folder Dialog Error", MB_OK | MB_ICONERROR);
+
+		pFileDialog->Release();
+
+		if (shouldUninitialize)
+			CoUninitialize();
+
+		return false;
+	}
+
+	IShellItem* pItem = NULL;
+
+	hr = pFileDialog->GetResult(&pItem);
+
+	if (FAILED(hr))
+	{
+		pFileDialog->Release();
+
+		if (shouldUninitialize)
+			CoUninitialize();
+
+		return false;
+	}
+
+	PWSTR pszPath = NULL;
+
+	hr = pItem->GetDisplayName(
+		SIGDN_FILESYSPATH,
+		&pszPath
+	);
+
+	if (SUCCEEDED(hr) && pszPath != NULL)
+	{
+#ifdef UNICODE
+
+		outPath = pszPath;
+
+#else
+
+		char buffer[MAX_PATH] = { 0 };
+
+		int result = WideCharToMultiByte(
+			CP_ACP,
+			0,
+			pszPath,
+			-1,
+			buffer,
+			MAX_PATH,
+			NULL,
+			NULL
+		);
+
+		if (result > 0)
+			outPath = buffer;
+
+#endif
+
+		CoTaskMemFree(pszPath);
+	}
+
+	pItem->Release();
+	pFileDialog->Release();
+
+	if (shouldUninitialize)
+		CoUninitialize();
+
+	return SUCCEEDED(hr) && !outPath.IsEmpty();
+}
+
+static bool IsValidFreelancerPath(LPCSTR path)
+{
+    if (!path || !*path)
+        return false;
+
+    char commonPath[MAX_PATH] = {};
+
+    if (sprintf_s(
+            commonPath,
+            sizeof(commonPath),
+            "%s\\EXE\\common.dll",
+            path
+        ) < 0)
+    {
+        return false;
+    }
+
+    DWORD attr = GetFileAttributes(commonPath);
+
+    return attr != INVALID_FILE_ATTRIBUTES &&
+           !(attr & FILE_ATTRIBUTE_DIRECTORY);
+}
 
 BOOL UTFXMLDlg::OnInitDialog()
 {
@@ -743,6 +910,7 @@ BOOL UTFXMLDlg::OnInitDialog()
 	{
 		CString strAboutMenu;
 		strAboutMenu.LoadString(IDS_ABOUTBOX);
+
 		if (!strAboutMenu.IsEmpty())
 		{
 			pSysMenu->AppendMenu(MF_SEPARATOR);
@@ -750,93 +918,265 @@ BOOL UTFXMLDlg::OnInitDialog()
 		}
 	}
 
-	SetIcon(m_hIcon, TRUE); 		// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
+	SetIcon(m_hIcon, TRUE);   // Set big icon
+	SetIcon(m_hIcon, FALSE);  // Set small icon
 
-	// Initialize the Critical Section for the background conversion thread
+	// Initialize the Critical Section for the background conversion thread.
 	InitializeCriticalSection(&m_Mutex);
 
-	char app_path[MAX_PATH];
-	char dest_path[MAX_PATH];
+	// Paths / Registry
+	char app_path[MAX_PATH]  = { 0 };
+	char dest_path[MAX_PATH] = { 0 };
+	char freelancer_path[MAX_PATH] = { 0 };
 
-	REGSAM sam = KEY_READ + KEY_WRITE;
-	DWORD Size;
+	HKEY hKey = NULL;
 
-	HKEY hKey;
-	/*if (RegCreateKeyEx(HKEY_LOCAL_MACHINE, FREELANCER_KEYPATH, 0, NULL, 0, sam, NULL, &hKey, NULL) != ERROR_SUCCESS)
+	LONG regResult = RegCreateKeyEx(
+		HKEY_CURRENT_USER,
+		"Software\\Lizerium\\UTFXML",
+		0,
+		NULL,
+		REG_OPTION_NON_VOLATILE,
+		KEY_READ | KEY_WRITE,
+		NULL,
+		&hKey,
+		NULL
+	);
+
+	if (regResult != ERROR_SUCCESS)
 	{
-		CString msg = "Unable to create/open Freelancer's registry key.";
-		msg += "\n\nHKLM\\";
-		msg += FREELANCER_KEYPATH;
-		MessageBox(msg, "Error");
+		MessageBox(
+			"Unable to create/open UTFXML registry key.\n\n"
+			"HKCU\\Software\\Lizerium\\UTFXML",
+			"Registry Error"
+		);
+
 		EndDialog(0);
 		return FALSE;
-	}*/
+	}
 
-	Size = sizeof(app_path);
-	strcpy(app_path, "F:\\LIZERIUM\\6_COMPARE\\COMPARE_GAMES\\LizeriumFreelancerModeChange");
-	// if (RegQueryValueEx(hKey, "AppPath", 0, NULL, (BYTE *) app_path, &Size) != ERROR_SUCCESS)
-	// {
-	// 	BROWSEINFO bi;
-	// 	bi.hwndOwner = NULL;
-	// 	bi.pidlRoot = NULL;
-	// 	bi.pszDisplayName = app_path;
-	// 	bi.lpszTitle = "Select path to Freelancer...";
-	// 	bi.ulFlags = 0;
-	// 	bi.lpfn = NULL;
-	// 	LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
-	// 	if (pidl == NULL)
-	// 	{
-	// 		EndDialog(0);
-	// 		return FALSE;
-	// 	}
-	// 	SHGetPathFromIDList(pidl, app_path);
-	// 	CoTaskMemFree(pidl);
-	// 	RegSetValueEx(hKey, "AppPath", 0, REG_SZ, (BYTE *) app_path, strlen(app_path));
-	// }
+	// Load Freelancer root path
+	DWORD size = sizeof(app_path);
+	DWORD type = REG_SZ;
 
-	Size = sizeof(dest_path);
-	if (RegQueryValueEx(hKey, "UTFXML DestPath", 0, NULL, (BYTE *) dest_path, &Size) != ERROR_SUCCESS)
+	if (RegQueryValueEx(
+			hKey,
+			"SourcePath",
+			0,
+			&type,
+			reinterpret_cast<BYTE*>(app_path),
+			&size
+		) != ERROR_SUCCESS ||
+		app_path[0] == '\0')
 	{
-		strcpy(dest_path, app_path);
-		strcat(dest_path, "\\XML");
+		CString selectedPath;
+
+		if (!SelectFolderModern(m_hWnd, selectedPath))
+		{
+			RegCloseKey(hKey);
+			EndDialog(0);
+			return FALSE;
+		}
+
+		strcpy_s(
+			app_path,
+			MAX_PATH,
+			(LPCSTR)selectedPath
+		);
+
+		// Immediately save selected Freelancer root.
+		LONG saveResult = RegSetValueEx(
+			hKey,
+			"SourcePath",
+			0,
+			REG_SZ,
+			reinterpret_cast<const BYTE*>(app_path),
+			static_cast<DWORD>(strlen(app_path) + 1)
+		);
+
+		if (saveResult != ERROR_SUCCESS)
+		{
+			MessageBox(
+				"Unable to save Freelancer path.",
+				"Registry Error"
+			);
+
+			RegCloseKey(hKey);
+			EndDialog(0);
+			return FALSE;
+		}
+	}
+
+	// Load destination path
+	size = sizeof(dest_path);
+	type = REG_SZ;
+
+	if (RegQueryValueEx(
+			hKey,
+			"DestPath",
+			0,
+			&type,
+			reinterpret_cast<BYTE*>(dest_path),
+			&size
+		) != ERROR_SUCCESS ||
+		dest_path[0] == '\0')
+	{
+		// Default destination:
+		// <Freelancer root>\XML
+		strcpy_s(dest_path, app_path);
+		strcat_s(dest_path, "\\XML");
+
+		// Remember default destination.
+		RegSetValueEx(
+			hKey,
+			"DestPath",
+			0,
+			REG_SZ,
+			reinterpret_cast<const BYTE*>(dest_path),
+			static_cast<DWORD>(strlen(dest_path) + 1)
+		);
+	}
+
+	size = sizeof(freelancer_path);
+	type = REG_SZ;
+
+	if (RegQueryValueEx(
+					hKey,
+					"FreelancerPath",
+					0,
+					&type,
+					reinterpret_cast<BYTE*>(freelancer_path),
+					&size
+			) != ERROR_SUCCESS)
+	{
+			freelancer_path[0] = '\0';
 	}
 
 	RegCloseKey(hKey);
+	hKey = NULL;
 
+	// FreelancerPath must be initialized before validation/import.
+	m_FreelancerPath = freelancer_path;
+
+	// Command line
 	UTFXMLCommandLineInfo options;
-	//ParseCommandLine(options);
+
 	for (int a = 1; a < __argc; ++a)
 	{
 		LPCSTR arg = __argv[a];
 		BOOL flag = FALSE;
+
 		if (*arg == '-' || *arg == '/')
 		{
 			++arg;
 			flag = TRUE;
 		}
+
 		options.ParseParam(arg, flag, (a == __argc - 1));
 	}
+
 	if (!options.dest.IsEmpty())
 	{
-		GetFullPathName(options.dest, MAX_PATH, dest_path, NULL);
+		GetFullPathName(
+			options.dest,
+			MAX_PATH,
+			dest_path,
+			NULL
+		);
 	}
 	else if (!options.src.IsEmpty())
 	{
-		GetCurrentDirectory(MAX_PATH, dest_path);
+		GetCurrentDirectory(
+			MAX_PATH,
+			dest_path
+		);
 	}
 
-	char path[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, path);
-	import(app_path);
+	// Import Freelancer data
+	char path[MAX_PATH] = { 0 };
+
+	GetCurrentDirectory(
+		MAX_PATH,
+		path
+	);
+
+	if (!IsValidFreelancerPath(m_FreelancerPath))
+	{
+			CString selectedPath;
+
+			MessageBox(
+					"Select the Freelancer root folder.\n\n"
+					"It must contain EXE\\common.dll.",
+					"Freelancer Path",
+					MB_OK | MB_ICONINFORMATION
+			);
+
+			if (!SelectFolderModern(m_hWnd, selectedPath))
+			{
+					EndDialog(0);
+					return FALSE;
+			}
+
+			if (!IsValidFreelancerPath(selectedPath))
+			{
+					MessageBox(
+							"Invalid Freelancer folder.\n\n"
+							"EXE\\common.dll was not found.",
+							"Freelancer Path",
+							MB_OK | MB_ICONERROR
+					);
+
+					EndDialog(0);
+					return FALSE;
+			}
+
+			m_FreelancerPath = selectedPath;
+			SetDlgItemText(IDC_FREELANCER_PATH, m_FreelancerPath);
+
+			HKEY pathKey = NULL;
+
+			if (RegCreateKeyEx(
+							HKEY_CURRENT_USER,
+							"Software\\Lizerium\\UTFXML",
+							0,
+							NULL,
+							REG_OPTION_NON_VOLATILE,
+							KEY_WRITE,
+							NULL,
+							&pathKey,
+							NULL
+					) == ERROR_SUCCESS)
+			{
+					RegSetValueEx(
+							pathKey,
+							"FreelancerPath",
+							0,
+							REG_SZ,
+							reinterpret_cast<const BYTE*>(
+									(LPCSTR)m_FreelancerPath
+							),
+							static_cast<DWORD>(
+									m_FreelancerPath.GetLength() + 1
+							)
+					);
+
+					RegCloseKey(pathKey);
+			}
+	}
+
+	import((LPCSTR)m_FreelancerPath);
+
+	// app_path still points to the Freelancer ROOT here.
+	// import(app_path);
+
 	SetCurrentDirectory(path);
 
+	// GUI / source path
 	if (options.src.IsEmpty())
 	{
 		m_Quiet = false;
 
-		strcat(app_path, "\\DATA");
-
+		// Converter works against Freelancer\DATA.
 		m_UtfFilenamesComboBox.AddString("All UTF files (3db,ale,anm,cmp,dfm,mat,sph,txm,utf,vms)");
 		m_UtfFilenamesComboBox.AddString("All Model files (*.3db)");
 		m_UtfFilenamesComboBox.AddString("All Alchemy files (*.ale)");
@@ -854,44 +1194,84 @@ BOOL UTFXMLDlg::OnInitDialog()
 	{
 		m_Quiet = true;
 
-		LPSTR name;
-		GetFullPathName(options.src, MAX_PATH, app_path, &name);
+		LPSTR name = NULL;
+
+		GetFullPathName(
+			options.src,
+			MAX_PATH,
+			app_path,
+			&name
+		);
+
 		m_UtfFilenamesComboBox.SetWindowText(app_path);
+
 		if (name)
+		{
 			name[-1] = '\0';
+		}
 	}
 
-	m_SourcePath = app_path;
+	m_SourcePath      = app_path;
 	m_DestinationPath = dest_path;
+	m_FreelancerPath  = freelancer_path;
 
-	SetDlgItemText(IDC_SOURCE_PATH, m_SourcePath);
-	SetDlgItemText(IDC_DESTINATION_PATH, m_DestinationPath);
+	SetDlgItemText(
+		IDC_FREELANCER_PATH,
+		m_FreelancerPath
+	);
 
-	CheckDlgButton(IDC_RECURSIVE,			  TRUE);
-	CheckDlgButton(IDC_GENERATE_XML_FILES,	  TRUE);
-	CheckDlgButton(IDC_CREATE_SUBFOLDERS,	  TRUE);
-	CheckDlgButton(IDC_SKIP_AUDIO,			  TRUE);
-	CheckDlgButton(IDC_SKIP_BASES,			  TRUE);
-	CheckDlgButton(IDC_SKIP_CHARACTERS,		  TRUE);
-	CheckDlgButton(IDC_SKIP_FX,				  TRUE);
-	CheckDlgButton(IDC_EXTRACT_AUDIO_FILES,   options.audio);
-	CheckDlgButton(IDC_EXTRACT_TEXTURE_FILES, options.textures);
-	CheckDlgButton(IDC_EXTRACT_INCLUDE_FILES, options.includes);
-	CheckDlgButton(IDC_OPTION_TIMESTAMPS,	  options.timestamps);
-	CheckDlgButton(IDC_OPTION_DEGREES,		  options.degrees);
-	CheckDlgButton(IDC_OPTION_ROTATION,		  options.rotation);
-	CheckDlgButton(IDC_OPTION_RGB,			  options.rgb);
+	SetDlgItemText(
+		IDC_SOURCE_PATH,
+		m_SourcePath
+	);
+
+	SetDlgItemText(
+		IDC_DESTINATION_PATH,
+		m_DestinationPath
+	);
+
+	// Default options
+	CheckDlgButton(IDC_RECURSIVE,             TRUE);
+	CheckDlgButton(IDC_GENERATE_XML_FILES,    TRUE);
+	CheckDlgButton(IDC_CREATE_SUBFOLDERS,     TRUE);
+
+	CheckDlgButton(IDC_SKIP_AUDIO,             TRUE);
+	CheckDlgButton(IDC_SKIP_BASES,             FALSE);
+	CheckDlgButton(IDC_SKIP_CHARACTERS,        TRUE);
+	CheckDlgButton(IDC_SKIP_FX,                TRUE);
+
+	CheckDlgButton(IDC_EXTRACT_AUDIO_FILES,    options.audio);
+	CheckDlgButton(IDC_EXTRACT_TEXTURE_FILES,  options.textures);
+	CheckDlgButton(IDC_EXTRACT_INCLUDE_FILES,  options.includes);
+
+	CheckDlgButton(IDC_OPTION_TIMESTAMPS,      options.timestamps);
+	CheckDlgButton(IDC_OPTION_DEGREES,         options.degrees);
+	CheckDlgButton(IDC_OPTION_ROTATION,        options.rotation);
+	CheckDlgButton(IDC_OPTION_RGB,             options.rgb);
+
 	OnOptionRgb();
 
+	// strings.lst
 	if (options.lst.IsEmpty())
 	{
-		m_StringsList.Format("%s\\strings.lst", (LPCSTR) m_DestinationPath);
-		if (GetFileAttributes(m_StringsList) == -1)
+		m_StringsList.Format(
+			"%s\\strings.lst",
+			(LPCSTR)m_DestinationPath
+		);
+
+		if (GetFileAttributes(m_StringsList) == INVALID_FILE_ATTRIBUTES)
 		{
-			if (GetFileAttributes("strings.lst") != -1)
+			if (GetFileAttributes("strings.lst") != INVALID_FILE_ATTRIBUTES)
 			{
-				m_StringsList.Format("%s\\strings.lst", path);
-				SetDlgItemText(IDC_STRINGS_LIST, m_StringsList);
+				m_StringsList.Format(
+					"%s\\strings.lst",
+					path
+				);
+
+				SetDlgItemText(
+					IDC_STRINGS_LIST,
+					m_StringsList
+				);
 			}
 			else
 			{
@@ -901,30 +1281,41 @@ BOOL UTFXMLDlg::OnInitDialog()
 	}
 	else
 	{
-		GetFullPathName(options.lst, MAX_PATH, path, NULL);
+		GetFullPathName(
+			options.lst,
+			MAX_PATH,
+			path,
+			NULL
+		);
+
 		m_StringsList = path;
 	}
-	SetDlgItemText(IDC_STRINGS_LIST, m_StringsList);
 
+	SetDlgItemText(
+		IDC_STRINGS_LIST,
+		m_StringsList
+	);
+
+	// Initialize converter
 	SetCurrentDirectory(app_path);
 
 	init_fx_crc();
 	Init_Ale_Types();
 
-	for (int i = 0; i < sizeof(NodeType)/sizeof(*NodeType); ++i)
+	for (int i = 0; i < sizeof(NodeType) / sizeof(*NodeType); ++i)
 	{
 		node_map[CreateID(NodeType[i].name)] = i;
 	}
 
+	// Command-line / quiet conversion
 	if (m_Quiet)
 	{
 		OnConvert();
 		EndDialog(0);
 	}
 
-	return TRUE;  // return TRUE  unless you set the focus to a control
+	return TRUE;
 }
-
 
 BOOL UTFXMLDlg::DestroyWindow()
 {
@@ -1000,6 +1391,132 @@ HCURSOR UTFXMLDlg::OnQueryDragIcon()
 	return (HCURSOR) m_hIcon;
 }
 
+void UTFXMLDlg::OnBrowseSourcePath()
+{
+    CString selectedPath;
+
+    if (!SelectFolderModern(m_hWnd, selectedPath))
+        return;
+
+    m_SourcePath = selectedPath;
+    SetDlgItemText(IDC_SOURCE_PATH, m_SourcePath);
+
+    HKEY hKey = NULL;
+
+    if (RegCreateKeyEx(
+        HKEY_CURRENT_USER,
+        "Software\\Lizerium\\UTFXML",
+        0,
+        NULL,
+        REG_OPTION_NON_VOLATILE,
+        KEY_WRITE,
+        NULL,
+        &hKey,
+        NULL
+    ) == ERROR_SUCCESS)
+    {
+        RegSetValueEx(
+            hKey,
+            "SourcePath",
+            0,
+            REG_SZ,
+            reinterpret_cast<const BYTE*>((LPCSTR)m_SourcePath),
+            static_cast<DWORD>(m_SourcePath.GetLength() + 1)
+        );
+
+        RegCloseKey(hKey);
+    }
+}
+
+void UTFXMLDlg::OnBrowseDestinationPath()
+{
+    CString selectedPath;
+
+    if (!SelectFolderModern(m_hWnd, selectedPath))
+        return;
+
+    m_DestinationPath = selectedPath;
+    SetDlgItemText(IDC_DESTINATION_PATH, m_DestinationPath);
+
+    HKEY hKey = NULL;
+
+    if (RegCreateKeyEx(
+        HKEY_CURRENT_USER,
+        "Software\\Lizerium\\UTFXML",
+        0,
+        NULL,
+        REG_OPTION_NON_VOLATILE,
+        KEY_WRITE,
+        NULL,
+        &hKey,
+        NULL
+    ) == ERROR_SUCCESS)
+    {
+        RegSetValueEx(
+            hKey,
+            "DestPath",
+            0,
+            REG_SZ,
+            reinterpret_cast<const BYTE*>((LPCSTR)m_DestinationPath),
+            static_cast<DWORD>(m_DestinationPath.GetLength() + 1)
+        );
+
+        RegCloseKey(hKey);
+    }
+}
+
+void UTFXMLDlg::OnBrowseFreelancerPath()
+{
+    CString selectedPath;
+
+    if (!SelectFolderModern(m_hWnd, selectedPath))
+        return;
+
+    if (!IsValidFreelancerPath(selectedPath))
+    {
+        MessageBox(
+            "Invalid Freelancer folder.\n\n"
+            "The selected folder must contain EXE\\common.dll.",
+            "Freelancer Path",
+            MB_OK | MB_ICONERROR
+        );
+
+        return;
+    }
+
+    m_FreelancerPath = selectedPath;
+    SetDlgItemText(IDC_FREELANCER_PATH, m_FreelancerPath);
+
+    HKEY hKey = NULL;
+
+    if (RegCreateKeyEx(
+            HKEY_CURRENT_USER,
+            "Software\\Lizerium\\UTFXML",
+            0,
+            NULL,
+            REG_OPTION_NON_VOLATILE,
+            KEY_WRITE,
+            NULL,
+            &hKey,
+            NULL
+        ) == ERROR_SUCCESS)
+    {
+        RegSetValueEx(
+            hKey,
+            "FreelancerPath",
+            0,
+            REG_SZ,
+            reinterpret_cast<const BYTE*>(
+                (LPCSTR)m_FreelancerPath
+            ),
+            static_cast<DWORD>(
+                m_FreelancerPath.GetLength() + 1
+            )
+        );
+
+        RegCloseKey(hKey);
+    }
+}
 
 void UTFXMLDlg::OnBrowseUtfFilename()
 {
@@ -1217,16 +1734,7 @@ void UTFXMLDlg::OnConvert()
 	fprintf(m_LogFile, "Source path: %s\n", source_path);
 	fprintf(m_LogFile, "Destination path: %s\n", m_CurrentDestinationPath);
 
-	if (!m_Quiet)
-	{
-		REGSAM sam = KEY_READ + KEY_WRITE;
-		HKEY hKey = NULL;
-		RegOpenKeyEx(HKEY_LOCAL_MACHINE, FREELANCER_KEYPATH, 0, sam, &hKey);
-		RegSetValueEx(hKey, "UTFXML DestPath", 0, REG_SZ, (BYTE *) m_CurrentDestinationPath, strlen(m_CurrentDestinationPath));
-		RegCloseKey(hKey);
-	}
-
-    SetCurrentDirectory(m_SourcePath);
+  SetCurrentDirectory(m_SourcePath);
 
 	// Initialize variables
 	if (!m_FindingMaterials)
@@ -1241,42 +1749,56 @@ void UTFXMLDlg::OnConvert()
 				fseek(f, 0, SEEK_END);
 				int len = ftell(f);
 				rewind(f);
-				mat_names = new char[len];
-				fread(mat_names, 1, len, f);
+
+				mat_names = new char[len + 1];
+
+				size_t read = fread(mat_names, 1, len, f);
+				mat_names[read] = '\0';
+
 				fclose(f);
+
 				bool do_hash = false;
-				char *n = mat_names;
-				char *end = mat_names + len;
-				while (n < end)
+				char* n = mat_names;
+				char* end = mat_names + read;
+
+				while (n < end && *n)
 				{
-					char *e = strchr(n, '\n');
-					if (e[-1] == '\r')
-					{
-						e[-1] = '\0';
-					}
-					else
-					{
-						*e = '\0';
-					}
-					if (!*n)
-					{
-						if (!common)
+						char* e = strchr(n, '\n');
+
+						if (!e)
 						{
-							break;
+								e = end;
 						}
-						do_hash = true;
+
+						char* lineEnd = e;
+
+						if (lineEnd > n && lineEnd[-1] == '\r')
+						{
+								--lineEnd;
+						}
+
+						*lineEnd = '\0';
+
+						if (!*n)
+						{
+								if (!common)
+										break;
+
+								do_hash = true;
+						}
+						else if (do_hash)
+						{
+								msg_hash[CreateID(n)] = n;
+						}
+						else
+						{
+								mat_crc[fl_crc32(n)] = n;
+						}
+
+						if (e == end)
+								break;
+
 						n = e + 1;
-						continue;
-					}
-					if (do_hash)
-					{
-						msg_hash[CreateID(n)] = n;
-					}
-					else
-					{
-						mat_crc[fl_crc32(n)] = n;
-					}
-					n = e + 1;
 				}
 			}
 		}
@@ -1575,27 +2097,45 @@ void UTFXMLDlg::CreateAndSetPath(LPCSTR path)
 
 void UTFXMLDlg::Log(LPCSTR format, ...)
 {
-	char buffer[512];
+    char buffer[2048] = { 0 };
 
-	va_list args;
-	va_start(args, format);
-	vsprintf(buffer, format, args);
-	va_end(args);
+    va_list args;
+    va_start(args, format);
 
-	TRACE(buffer);
+    vsnprintf_s(
+        buffer,
+        sizeof(buffer),
+        _TRUNCATE,
+        format,
+        args
+    );
 
-	if (m_LogFile)
-	{
-		fprintf(m_LogFile, buffer);
-	}
+    va_end(args);
+
+    TRACE("%s", buffer);
+
+    if (m_LogFile)
+    {
+        fprintf(m_LogFile, "%s", buffer);
+        fflush(m_LogFile);
+    }
 }
 
 
 void UTFXMLDlg::ProcessUTFFile(LPCSTR filename)
 {
+	m_tga_file = NULL;
+	m_bmp_file = NULL;
+	m_vms_file = NULL;
+	m_3db_file = NULL;
+
+	m_TextureLibrary = false;
+	m_VMeshLibrary = false;
+	m_Animation = false;
+
 	bool generated_output = false;
 
-	FILE *f = fopen(filename, "rb");
+	FILE* f = fopen(filename, "rb");
 	if (f)
 	{
 		// Determine the file size
@@ -1613,6 +2153,7 @@ void UTFXMLDlg::ProcessUTFFile(LPCSTR filename)
 		// Look for the UTF signature
 		if (!STRBEG(m_Header.UTF, "UTF "))
 		{
+			Log("   *** SKIPPED: Not a UTF file: %s ***\n", filename);
 			fclose(f);
 			return;
 		}
@@ -1697,7 +2238,7 @@ void UTFXMLDlg::ProcessUTFFile(LPCSTR filename)
 		m_String = new char[m_Header.string_alloc];
 		if (!m_String)
 		{
-			delete m_Tree;
+			delete[] m_Tree;
 			Log("   *** Error: Unable to allocate space for string ***\n");
 			fclose(f);
 			return;
@@ -1711,8 +2252,8 @@ void UTFXMLDlg::ProcessUTFFile(LPCSTR filename)
 			m_Data = new BYTE[data_size];
 			if (!m_Data)
 			{
-				delete m_String;
-				delete m_Tree;
+				delete[] m_String;
+				delete[] m_Tree;
 				Log("   *** Error: Unable to allocate space for data ***\n");
 				fclose(f);
 				return;
@@ -1755,8 +2296,8 @@ void UTFXMLDlg::ProcessUTFFile(LPCSTR filename)
 				}
 			}
 
-			delete m_String;
-			delete m_Tree;
+			delete[] m_String;
+			delete[] m_Tree;
 			fclose(f);
 			return;
 		}
@@ -1825,12 +2366,20 @@ void UTFXMLDlg::ProcessUTFFile(LPCSTR filename)
 		}
 
 		// We are done with the data, string, and tree
-		delete m_Data;
-		delete m_String;
-		delete m_Tree;
+		delete[] m_Data;
+		delete[] m_String;
+		delete[] m_Tree;
+
+		m_Data = NULL;
+		m_String = NULL;
+		m_Tree = NULL;
 
 		// Close the input file
 		fclose(f);
+	}
+	else
+	{
+		Log("   *** Error: Unable to open file \"%s\" ***\n", filename);
 	}
 }
 
@@ -1861,21 +2410,33 @@ void UTFXMLDlg::ProcessUTFNode(UTFNode *node)
 
 		bool bad_xml_tag = false;
 		int name_length = strlen(name);
+
+		if (name_length >= MAX_PATH)
+		{
+				Log(
+						"   *** Error: Node name is too long (%zu bytes): %.200s ***\n",
+						name_length,
+						name
+				);
+
+				return;
+		}
+
 		for (int i = 0; i < name_length+1; i++)
 		{
 			char c = name[i];
-			lc_name[i] = tolower(c);
+			unsigned char uc = static_cast<unsigned char>(c);
+
+			lc_name[i] = static_cast<char>(tolower(uc));
 			xml_tag[i] = xml_name[i] = c;
 
-			// Does the name contain any invalid characters?
-			if (!((isalpha(c)) ||
-				  ((isdigit(c)) && (i != 0)) ||
-				  (c == '.') ||
-				  (c == '_') ||
-				  (c == '-') ||
-				  (c == 0)))
+			if (!((isalpha(uc)) ||
+					((isdigit(uc)) && (i != 0)) ||
+					(c == '.') ||
+					(c == '_') ||
+					(c == '-') ||
+					(c == 0)))
 			{
-				// This is not a valid XML character
 				xml_tag[i] = xml_name[i] = '_';
 				bad_xml_tag = true;
 			}
@@ -1884,7 +2445,23 @@ void UTFXMLDlg::ProcessUTFNode(UTFNode *node)
 		// Use the XML compliant name but save the original name
 		if (bad_xml_tag)
 		{
-			sprintf(xml_tag+name_length, " name=\"%s\"", name);
+				char clean_name[MAX_PATH];
+
+				strncpy_s(
+						clean_name,
+						sizeof(clean_name),
+						name,
+						_TRUNCATE
+				);
+
+				SanitizeInlineString(clean_name);
+
+				sprintf_s(
+						xml_tag + name_length,
+						sizeof(xml_tag) - name_length,
+						" name=\"%s\"",
+						clean_name
+				);
 		}
 
 		if (strstr(lc_name, ".tga"))
@@ -2016,57 +2593,101 @@ void UTFXMLDlg::ProcessUTFNode(UTFNode *node)
 					fprintf(m_XmlFile, "<%s", xml_tag);
 					// Give certain nodes their own file.
 					if ((!m_is_anm && STREQ(lc_name, "animation")) ||
-						(m_is_anm && m_Depth == 4) ||
-						(m_is_dfm && STRBEG(lc_name, "mesh")) ||
-						(m_VMeshLibrary && m_Depth == 3) ||
-						(STREQ(lc_name, "vmeshwire")))
+							(m_is_anm && m_Depth == 4) ||
+							(m_is_dfm && STRBEG(lc_name, "mesh")) ||
+							(m_VMeshLibrary && m_Depth == 3) ||
+							(STREQ(lc_name, "vmeshwire")))
 					{
-						if (STREQ(lc_name, "vmeshwire"))
-						{
-							if (m_3db_file)
+							if (STREQ(lc_name, "vmeshwire"))
 							{
-								// Remove the timestamp
-								int i, j;
-								i = strlen(m_3db_file)-4;
-								for (j = 12; j > 0; --j)
-								{
-									if (!isdigit(m_3db_file[i-j]))
+									if (m_3db_file)
 									{
-										break;
+											int len = (int)strlen(m_3db_file);
+											int i = len - 4;
+
+											if (i < 0)
+											{
+													sprintf_s(
+															wire_name,
+															sizeof(wire_name),
+															"VMeshWire%d.vwd",
+															++vmeshwire_cnt
+													);
+											}
+											else
+											{
+													int j;
+
+													for (j = 12; j > 0; --j)
+													{
+															int pos = i - j;
+
+															if (pos < 0 ||
+																	!isdigit(
+																			static_cast<unsigned char>(
+																					m_3db_file[pos]
+																			)
+																	))
+															{
+																	break;
+															}
+													}
+
+													if (j == 0 && i >= 12)
+													{
+															i -= 12;
+													}
+
+													sprintf_s(
+															wire_name,
+															sizeof(wire_name),
+															"%.*s.vwd",
+															i,
+															m_3db_file
+													);
+											}
 									}
-								}
-								if (j == 0)
-								{
-									i -= 12;
-								}
-								sprintf(wire_name, "%.*s.vwd", i, m_3db_file);
+									else
+									{
+											sprintf_s(
+													wire_name,
+													sizeof(wire_name),
+													"VMeshWire%d.vwd",
+													++vmeshwire_cnt
+											);
+									}
+
+									include = wire_name;
+							}
+							else if (m_VMeshLibrary)
+							{
+									// Remove the path
+									include = stristr(name, "lod");
+
+									if (!include)
+									{
+											include = name;
+									}
+							}
+							else if (m_Animation)
+							{
+									sprintf(xml_tag, "%s", name);
+									UTFNode *branch = NODE(node->branch);
 							}
 							else
 							{
-								sprintf(wire_name, "VMeshWire%d", ++vmeshwire_cnt);
+									include = name;
 							}
-							include = wire_name;
-						}
-						else if (m_VMeshLibrary)
-						{
-							// Remove the path
-							include = stristr(name, "lod");
-							if (!include)
+
+							if (!m_Animation)
 							{
-								include = name;
+									fprintf(
+											m_XmlFile,
+											" include=\"%s\\%s.xml\"",
+											m_ExtractPath,
+											include
+									);
 							}
-						}
-						else if(m_Animation)
-						{
-							sprintf(xml_tag, "%s", name);
-							UTFNode *branch = NODE(node->branch);
-						}
-						else
-						{
-							include = name;
-						}
-						if(!m_Animation)
-							fprintf(m_XmlFile, " include=\"%s\\%s.xml\"", m_ExtractPath, include);
 					}
 				}
 
@@ -2240,7 +2861,14 @@ void UTFXMLDlg::ProcessLeaf(LPCSTR name, BYTE *leaf, DWORD size)
 			{
 				i -= 16;
 			}
-			sprintf(fname, "%.*s.dds", i, m_tga_file);
+			sprintf_s(
+					fname,
+					sizeof(fname),
+					"%.*s.dds",
+					static_cast<int>(i),
+					m_tga_file
+			);
+
 			filename = SaveDataFile(fname, leaf, size, m_ExtractTextureFiles);
 			m_tga_file = NULL;
 		}
@@ -2271,7 +2899,7 @@ void UTFXMLDlg::ProcessLeaf(LPCSTR name, BYTE *leaf, DWORD size)
 			{
 				i -= 16;
 			}
-			sprintf(fname, "%.*s_mip%s.tga", i, tex, name+3);
+			sprintf_s(fname, sizeof(fname), "%.*s_mip%s.tga", i, tex, name+3);
 			filename = SaveDataFile(fname, leaf, size, m_ExtractTextureFiles);
 		}
 	}
@@ -2293,17 +2921,17 @@ void UTFXMLDlg::ProcessLeaf(LPCSTR name, BYTE *leaf, DWORD size)
 		{
 			// Fair chance it's one of the audio files;
 			// see if it's one that's been mapped.
-			sprintf(fname, "%s.wav", crc_name(msg_hash, hash));
+			sprintf_s(fname, sizeof(fname), "%s.wav", crc_name(msg_hash, hash));
 		}
 		else
 		{
-			strcpy(fname, name);
+			strcpy_s(fname, sizeof(fname), name);
 			i = strlen(fname);
 			if (i > 4 && STRIEQ(fname+i-4, ".wav"))
 			{
 				i -= 4;
 			}
-			strcpy(fname+i, ".wav");
+			strcpy_s(fname+i, sizeof(fname)-i, ".wav");
 		}
 		filename = SaveDataFile(fname, leaf, size, m_ExtractAudioFiles);
 	}
@@ -2315,13 +2943,52 @@ void UTFXMLDlg::ProcessLeaf(LPCSTR name, BYTE *leaf, DWORD size)
 		switch (node_type)
 		{
 		case NODE_TYPE_TEXT :
-			OpenNode("text");
-			fprintf(m_XmlFile, (leaf[0] == ' ') ? "\"%.*s\"" : "%.*s", size, leaf);
-			CloseNode();
-			break;
+		{
+				OpenNode("text");
+
+				// Leaf may contain embedded CR/LF or leading whitespace.
+				// Copy it first because m_Data must not be modified.
+				char* text = new char[size + 1];
+
+				memcpy(text, leaf, size);
+				text[size] = '\0';
+
+				SanitizeInlineString(text);
+
+				fprintf(m_XmlFile, "%s", text);
+
+				delete[] text;
+
+				CloseNode();
+				break;
+		}
 
 		case NODE_TYPE_FILE :
-			OpenNode("file", "filename=\"%s\"", filename);
+			if (filename)
+			{
+					OpenNode(
+							"file",
+							"filename=\"%s\"",
+							filename
+					);
+			}
+			else
+			{
+					OpenNode("hex", "size=\"%d\"", size);
+
+					Indent(1);
+
+					for (i = 0; i < size; ++i)
+					{
+							if (i && ((i % wrap) == 0))
+									Indent();
+
+							fprintf(m_XmlFile, "%02x", leaf[i]);
+					}
+
+					Indent(-1);
+					CloseNode();
+			}
 			// Closes it, too
 			break;
 
@@ -2865,13 +3532,6 @@ UTFNode *UTFXMLDlg::FindNode(UTFNode *root, LPCSTR name)
 
 		node = NODE(node->next);
 	}
-}
-
-
-// Comparison function for the set - compare the strings, not the pointers.
-bool std::less<LPCSTR>::operator()(const LPCSTR &s1, const LPCSTR &s2) const
-{
-	return (stricmp(s1, s2) < 0);
 }
 
 

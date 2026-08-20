@@ -13,17 +13,21 @@
 // is a multiple of 3).
 char *ftoa(float num, int left /* = -2 */)
 {
-	static char buf[9][20]; 	// rotate between nine buffers
-	static int	idx;			//	(bounding box & center)
+	// Separate rotating buffers for each thread.
+	static thread_local char buf[9][32] = {};
+	static thread_local int idx = 0;
+
+	// Defensive protection against corrupted index.
+	if (idx < 0 || idx >= 9)
+		idx = 0;
 
 	char *rc = buf[idx];
-	if (++idx == 9)
-	{
-		idx = 0;
-	}
 
-	bool neg, fix, sgn;
-	neg = fix = sgn = false;
+	idx = (idx + 1) % 9;
+
+	bool neg = false;
+	bool fix = false;
+	bool sgn = false;
 
 	if (left)
 	{
@@ -32,29 +36,37 @@ char *ftoa(float num, int left /* = -2 */)
 			sgn = true;
 			left = -left;
 		}
+
 		if (left < 2)
-		{
 			left = 2;
-		}
 		else if (left > 6)
-		{
 			left = 6;
-		}
+
 		left += 12;
 		fix = true;
 	}
 
 	// Some VMeshData texture coordinates don't really look like floats,
-	// so use hex, instead.
-	BYTE hi = ((BYTE *) &num)[3] & 0x7F;
+	// so use hex instead.
+	BYTE hi = (reinterpret_cast<BYTE*>(&num))[3] & 0x7F;
+
 	if ((hi == 0 && num) || hi == 0x7F)
 	{
 		if (fix)
 		{
 			left -= 10;
-			memset(rc, ' ', left);
+
+			if (left > 0)
+				memset(rc, ' ', left);
 		}
-		sprintf(rc + left, "0x%08X", *(DWORD *) &num);
+
+		sprintf_s(
+			rc + ((left > 0) ? left : 0),
+			32 - ((left > 0) ? left : 0),
+			"0x%08X",
+			*reinterpret_cast<DWORD*>(&num)
+		);
+
 		return rc;
 	}
 
@@ -66,72 +78,143 @@ char *ftoa(float num, int left /* = -2 */)
 
 	if (num && (num < 1e-3f || num >= ((fix) ? 1e6f : 1e8f)))
 	{
-		int exp = (int) floor(log10(num));
+		int exp = static_cast<int>(floor(log10(num)));
+
 		int adj = exp % 3;
+
 		if (adj < 0)
-		{
 			adj += 3;
-		}
+
 		exp -= adj;
+
 		double n = num / pow(10.0, exp);
-		if (n > 999.99999)		// some numbers just aren't what they seem...
+
+		if (n > 999.99999)
 		{
 			n /= 1000;
 			exp += 3;
 		}
+
 		if (neg)
-		{
 			n = -n;
-		}
+
 		if (fix)
 		{
-			sprintf(rc, (sgn) ? "% #*.8ge%+.2d" : "%#*.8ge%+.2d", left-4, n, exp);
+			sprintf_s(
+				rc,
+				32,
+				(sgn) ? "% #*.8ge%+.2d" : "%#*.8ge%+.2d",
+				left - 4,
+				n,
+				exp
+			);
 		}
 		else
 		{
-			sprintf(rc, "%.8ge%d", n, exp);
+			sprintf_s(
+				rc,
+				32,
+				"%.8ge%d",
+				n,
+				exp
+			);
 		}
 	}
 	else
 	{
-		// Let's still round some numbers, so things like "0.19999999" become
-		// "0.2".  Damn, I hate printing floats...
 		bool round = (num < 100);
+
 		if (neg)
-		{
 			num = -num;
-		}
+
 		if (fix)
 		{
-			char temp[20];
-			char *z = temp + sprintf(temp, (sgn) ? "% #.8g" : "%#.8g", num);
-			if (round)
+			char temp[32] = {};
+
+			int written = sprintf_s(
+				temp,
+				sizeof(temp),
+				(sgn) ? "% #.8g" : "%#.8g",
+				num
+			);
+
+			if (written < 0)
 			{
-				if (STRBEG(z-4, "999") || STRBEG(z-4, "000"))
-				{
-					z = temp + sprintf(temp, (sgn) ? "% #g" : "%#g", num);
-				}
-			}
-			char *p = strchr(temp, '.') + 1 + 10;
-			while (z < p)
-			{
-				*z++ = '0';
-			}
-			*z = '\0';
-			sprintf(rc, "%*s", left, temp);
-			if (strstr(rc, "NAN"))
-			{
+				rc[0] = '\0';
 				return rc;
 			}
+
+			char *z = temp + written;
+
+			if (round && written >= 4)
+			{
+				if (STRBEG(z - 4, "999") ||
+					STRBEG(z - 4, "000"))
+				{
+					written = sprintf_s(
+						temp,
+						sizeof(temp),
+						(sgn) ? "% #g" : "%#g",
+						num
+					);
+
+					if (written < 0)
+					{
+						rc[0] = '\0';
+						return rc;
+					}
+
+					z = temp + written;
+				}
+			}
+
+			char *decimal = strchr(temp, '.');
+
+			if (decimal)
+			{
+				char *p = decimal + 1 + 10;
+				char *end = temp + sizeof(temp) - 1;
+
+				if (p > end)
+					p = end;
+
+				while (z < p)
+					*z++ = '0';
+
+				*z = '\0';
+			}
+
+			sprintf_s(
+				rc,
+				32,
+				"%*s",
+				left,
+				temp
+			);
+
+			if (strstr(rc, "NAN"))
+				return rc;
 		}
 		else
 		{
-			int len = sprintf(rc, "%.8g", num);
+			int len = sprintf_s(
+				rc,
+				32,
+				"%.8g",
+				num
+			);
+
 			if (len >= 9 && round)
 			{
-				if (STRBEG(rc+len-4, "999") || STRBEG(rc+len-4, "000"))
+				if (STRBEG(rc + len - 4, "999") ||
+					STRBEG(rc + len - 4, "000"))
 				{
-					sprintf(rc, "%g", num);
+					sprintf_s(
+						rc,
+						32,
+						"%g",
+						num
+					);
 				}
 			}
 		}
@@ -197,7 +280,7 @@ char *ftoc(float *col, UINT flag)
 // Convert radians to a string in degrees, with at most two decimals.
 char *rtoa(float r, bool symbol /* = true */, bool align /* = false */)
 {
-	static char buf[3][12];	// "-999999.99°"
+	static char buf[3][12];	// "-999999.99ï¿½"
 	static int  idx;
 
 	char *rc = buf[idx];
@@ -234,7 +317,7 @@ char *rtoa(float r, bool symbol /* = true */, bool align /* = false */)
 		}
 		if (symbol)
 		{
-			rc[len++] = '°';
+			rc[len++] = 'ï¿½';
 		}
 		rc[len] = '\0';
 		// Remove leading spaces.
@@ -243,7 +326,7 @@ char *rtoa(float r, bool symbol /* = true */, bool align /* = false */)
 	}
 	else if (symbol)
 	{
-		rc[len++] = '°';
+		rc[len++] = 'ï¿½';
 		rc[len] = '\0';
 	}
 

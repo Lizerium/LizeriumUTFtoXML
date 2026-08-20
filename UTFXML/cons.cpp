@@ -17,6 +17,41 @@
 #include "UTFXML.h"
 #include "UTFXMLDlg.h"
 
+static void SanitizeInlineString(char* s)
+{
+    if (!s)
+        return;
+
+    char* src = s;
+
+    while (*src == ' ' || *src == '\t' ||
+           *src == '\r' || *src == '\n')
+    {
+        ++src;
+    }
+
+    char* dst = s;
+    bool pendingSpace = false;
+
+    while (*src)
+    {
+        if (*src == ' ' || *src == '\t' ||
+            *src == '\r' || *src == '\n')
+        {
+            pendingSpace = true;
+            ++src;
+            continue;
+        }
+
+        if (pendingSpace && dst != s)
+            *dst++ = ' ';
+
+        pendingSpace = false;
+        *dst++ = *src++;
+    }
+
+    *dst = '\0';
+}
 
 void UTFXMLDlg::WriteFix(BYTE *leaf, DWORD size)
 {
@@ -89,20 +124,37 @@ void UTFXMLDlg::WriteSphere(BYTE *leaf, DWORD size)
 
 void UTFXMLDlg::WriteConsOpen(const void *cons, bool has_ofs)
 {
-	REV *rev = (REV *) cons;
-	Indent();
-	fprintf(m_XmlFile, "<part>");
-	Indent(1);
-	fprintf(m_XmlFile, "<!-- parent      --> \"%s\",", rev->parent);
-	Indent();
-	fprintf(m_XmlFile, "<!-- child       --> \"%s\",", rev->child);
-	Indent();
-	fprintf(m_XmlFile, "<!-- position    --> %s,", vtoal(rev->position, 0));
-	if (has_ofs)
-	{
-	Indent();
-	fprintf(m_XmlFile, "<!-- offset      --> %s,", vtoal(rev->offset, 0));
-	}
+    REV *rev = (REV *)cons;
+
+    char parent[sizeof(rev->parent) + 1];
+    char child[sizeof(rev->child) + 1];
+
+    memcpy(parent, rev->parent, sizeof(rev->parent));
+    memcpy(child, rev->child, sizeof(rev->child));
+
+    parent[sizeof(rev->parent)] = '\0';
+    child[sizeof(rev->child)] = '\0';
+
+    SanitizeInlineString(parent);
+    SanitizeInlineString(child);
+
+    Indent();
+    fprintf(m_XmlFile, "<part>");
+
+    Indent(1);
+    fprintf(m_XmlFile, "<!-- parent      --> \"%s\",", parent);
+
+    Indent();
+    fprintf(m_XmlFile, "<!-- child       --> \"%s\",", child);
+
+    Indent();
+    fprintf(m_XmlFile, "<!-- position    --> %s,", vtoal(rev->position, 0));
+
+    if (has_ofs)
+    {
+        Indent();
+        fprintf(m_XmlFile, "<!-- offset      --> %s,", vtoal(rev->offset, 0));
+    }
 }
 
 

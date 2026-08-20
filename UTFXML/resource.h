@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
-// Used by UTFXML.rc
+// Включаемый файл, созданный в Microsoft Visual C++.
+// Используется UTFXML.rc
 //
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_ABOUTBOX                    100
@@ -36,14 +36,18 @@
 #define IDC_OPTION_RGB                  1024
 #define IDC_PROGRAM_NAME                1025
 #define IDC_STRINGS_LIST                1026
+#define IDC_BROWSE_SOURCE_PATH          1101
+#define IDC_BROWSE_DESTINATION_PATH     1102
+#define IDC_FREELANCER_PATH             1103
+#define IDC_BROWSE_FREELANCER_PATH      1104
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        137
+#define _APS_NEXT_RESOURCE_VALUE        138
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1032
+#define _APS_NEXT_CONTROL_VALUE         1105
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
